@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory CRUD — NestJS</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">📦 Inventory</div>
+    <button class="nav-btn active">🏠 Dashboard</button>
+    <button class="nav-btn">📋 Products</button>
+    <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--dim)">NestJS + Drizzle ORM</div>
+      <div style="font-size:11px;color:var(--border);margin-top:3px">PostgreSQL Backend</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Product Inventory</h1>
+      <button class="btn btn-primary" onclick="openAdd()">+ Add Product</button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-val" id="stat-total">—</div>
+        <div class="stat-label">Total Products</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-val" id="stat-active">—</div>
+        <div class="stat-label">Active</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏭</div>
+        <div class="stat-val" id="stat-stock">—</div>
+        <div class="stat-label">Total Stock</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-val" id="stat-avg">—</div>
+        <div class="stat-label">Avg Price</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-val" id="stat-low" style="color:var(--red)">—</div>
+        <div class="stat-label">Low Stock (&lt;10)</div>
+      </div>
+    </div>
+
+    <!-- Toolbar: Search + Filters -->
+    <div class="toolbar">
+      <input id="search" class="search-input" placeholder="🔍 Search products..." />
+
+      <select id="filter-category" class="filter">
+        <option value="">All Categories</option>
+        <option value="electronics">Electronics</option>
+        <option value="clothing">Clothing</option>
+        <option value="food">Food</option>
+        <option value="furniture">Furniture</option>
+        <option value="tools">Tools</option>
+        <option value="other">Other</option>
+      </select>
+
+      <select id="filter-status" class="filter">
+        <option value="">All Status</option>
+        <option value="true">Active</option>
+        <option value="false">Inactive</option>
+      </select>
+
+      <select id="filter-sort" class="filter">
+        <option value="createdAt:desc">Newest First</option>
+        <option value="createdAt:asc">Oldest First</option>
+        <option value="price:asc">Price ↑</option>
+        <option value="price:desc">Price ↓</option>
+        <option value="stock:asc">Stock ↑</option>
+        <option value="stock:desc">Stock ↓</option>
+        <option value="name:asc">Name A–Z</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="8" class="empty">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="pagination"></div>
+
+  </main>
+</div>
+
+<!-- ── Add / Edit Modal ── -->
+<div id="modal" class="overlay hidden" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <span id="modal-title" class="modal-title">Add Product</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form id="product-form">
+      <div class="modal-body">
+        <div id="modal-error" class="error-box hidden"></div>
+
+        <div class="grid-2">
+          <label class="field">Product Name *
+            <input id="field-name" class="field-input" required maxlength="255" />
+          </label>
+          <label class="field">SKU *
+            <input id="field-sku" class="field-input" required minlength="3" maxlength="100" placeholder="e.g. ELEC-001" />
+          </label>
+        </div>
+
+        <label class="field">Description
+          <textarea id="field-description" class="field-input" placeholder="Optional description..."></textarea>
+        </label>
+
+        <div class="grid-3">
+          <label class="field">Category *
+            <select id="field-category" class="field-input" required>
+              <option value="electronics">Electronics</option>
+              <option value="clothing">Clothing</option>
+              <option value="food">Food</option>
+              <option value="furniture">Furniture</option>
+              <option value="tools">Tools</option>
+              <option value="other" selected>Other</option>
+            </select>
+          </label>
+          <label class="field">Price (₹) *
+            <input id="field-price" class="field-input" type="number" min="0" step="0.01" required />
+          </label>
+          <label class="field">Stock *
+            <input id="field-stock" class="field-input" type="number" min="0" required />
+          </label>
+        </div>
+
+        <label class="field">Image URL
+          <input id="field-imageurl" class="field-input" type="url" placeholder="https://..." />
+        </label>
+
+        <label class="checkbox-row">
+          <input id="field-isactive" type="checkbox" checked />
+          Active (visible in inventory)
+        </label>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn" style="background:var(--border);color:var(--muted)" onclick="closeModal()">Cancel</button>
+        <button id="save-btn" type="submit" class="btn btn-primary">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
