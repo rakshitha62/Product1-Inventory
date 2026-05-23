@@ -18,7 +18,7 @@ export const products = pgTable("products", {
   imageUrl:    varchar("image_url", { length: 500 }),
   isActive:    boolean("is_active").notNull().default(true),
   createdAt:   timestamp("created_at").defaultNow().notNull(),
-  updatedAt:   timestamp("updated_at").defaultNow().notNull(),
+  updatedAt:   timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
 });
 
 export type Product    = typeof products.$inferSelect;

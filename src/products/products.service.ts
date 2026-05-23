@@ -78,7 +78,7 @@ export class ProductsService {
       if (conflict.length > 0) throw new ConflictException(`SKU "${dto.sku}" already in use`);
     }
     const [updated] = await db.update(products)
-      .set({ ...dto, price: dto.price !== undefined ? String(dto.price) : undefined, updatedAt: new Date() })
+      .set({ ...dto, price: dto.price !== undefined ? String(dto.price) : undefined })
       .where(eq(products.id, id)).returning();
     return updated;
   }

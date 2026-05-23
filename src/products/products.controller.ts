@@ -13,7 +13,7 @@ export class ProductsController {
   // POST /api/products
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body(ValidationPipe) dto: CreateProductDto) {
+  create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
   }
 
@@ -44,7 +44,7 @@ export class ProductsController {
 
   // PUT /api/products/:id
   @Put(":id")
-  update(@Param("id", ParseIntPipe) id: number, @Body(ValidationPipe) dto: UpdateProductDto) {
+  update(@Param("id", ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
     return this.productsService.update(id, dto);
   }
 
